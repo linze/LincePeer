@@ -167,7 +167,11 @@ package body Lince_IndexHandler is
   -- of the program.
   procedure RemoveIndex ( FileName    : in ASU.Unbounded_String ) is
   begin
-    ADir.Delete_File (ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION));
+    if ADir.Exists (ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION)) then
+      ADir.Delete_File (ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION));
+    end if;
+  exception
+    when Ex : others => LIO.DebugError ("LIndexHandler", "RemoveIndex", Ex);
   end RemoveIndex;
 
 

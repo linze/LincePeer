@@ -33,7 +33,7 @@ package Lince_NodeProtocol is
   end record;
 
 
-  type TWelcome is record      -- TODO : Implement the node list!!
+  type TWelcome is record
     Options      : Natural;
     N            : Natural;
     Peers        : GNULContacts.Contacts_List_Type;

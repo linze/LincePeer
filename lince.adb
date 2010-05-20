@@ -30,12 +30,11 @@ procedure Lince is
 
   Arguments    : Natural;
 begin
-  LIO.StartLog;
-  LIO.VerboseDebug ("Lince", "Main", "Parsing arguments...");
   Arguments := ADA.Command_Line.Argument_Count;
   case Arguments is
     -- Startup as server
     when 5 =>
+      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as server");
       -- Listening port
       LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
@@ -48,6 +47,7 @@ begin
       LConsole.StartConsole;
     -- Startup as server with windows size.
     when 6 =>
+      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as server with windows size");
       -- Listening port
       LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
@@ -62,6 +62,7 @@ begin
       LConsole.StartConsole;
     -- Start up with widows size and starting node
     when 8 =>
+      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as server with windows size and starting node");
       -- Listening port
       LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
@@ -79,6 +80,7 @@ begin
       LConsole.StartConsole;
     -- Start up with windows size and direct node download
     when 9 =>
+      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as peer downloading a file directly");
       -- Listening port
       LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
@@ -101,5 +103,6 @@ begin
       LConsole.StartConsole;
     when others =>
       LConsole.ShowUsage;
+      LLU.Finalize;
   end case;
 end Lince;

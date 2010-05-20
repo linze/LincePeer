@@ -17,6 +17,8 @@ with gnutelight_contacts;
 use type Lince_Protocol.TOption_Type;
 -- Used to be able to concatenate Unbounded_Strings
 use type Ada.Strings.Unbounded.Unbounded_String;
+-- Applied to be able to compare file sizes
+use type Ada.Directories.File_Size;
 
 package body Lince_FileHandler is
 
@@ -43,8 +45,14 @@ package body Lince_FileHandler is
     AS_IO.Close (File);
     return True;
   exception
-    when AS_IO.End_Error => AS_IO.Close (File);
-                            return False;
+    -- Don't know why. But this doesn't work:
+    --when AS_IO.End_Error => AS_IO.Close (File);
+    --                        return False;
+    -- We always do a FileExists check before. So Name_Error is avoided
+    -- before entering this part.
+    when others =>
+      AS_IO.Close (File);
+      return False;
   end BlockExists;
 
   -- Reads a block of a file and places it in a stream.
@@ -135,6 +143,9 @@ package body Lince_FileHandler is
       LIO.VerboseDebug ("LFileHandler", "ServeBlock", "Block not found");
       NotifyDataError (DataReq, LProtocol.BLOCK_NOT_FOUND);
     -- If file and block exists...
+    elsif (ADir.Size (ASU.To_String (LConfig.SHARINGDIR & DataReq.FileName)) = 0) then
+      LIO.VerboseDebug ("LFileHandler", "ServeBlock", "Empty file");
+      NotifyDataError (DataReq, LProtocol.BLOCK_NOT_FOUND);
     else
       LIO.VerboseDebug ("LFileHandler", "ServeBlock", "Placing information into DATA message");
       -- Check if option SIZEREQ is turned on
@@ -286,6 +297,7 @@ package body Lince_FileHandler is
             if Data.Size = 0 then
               -- Mark as completed to free the slot
               LDownloadsList.MarkDownloadAsCompleted (Data.FileName, DownloadsSlots);
+              LIndexHandler.RemoveIndex (Data.FileName);
             else
               -- Creates the index file with the remaining blocks
               LIndexHandler.WriteNewIndex (Data.FileName, Data.Size);
@@ -410,17 +422,23 @@ package body Lince_FileHandler is
       else
         case DataErr.OptionType is
           when LProtocol.FILE_NOT_FOUND =>
-                                         LIO.Notify ("File not found!", LIO.mtERROR);
-                                         LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName,
-                                                                                 DownloadsSlots);
+            LIO.Notify ("File not found!", LIO.mtERROR);
+            LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName, DownloadsSlots);
+            LIndexHandler.RemoveIndex (DataErr.FileName);
           when LProtocol.BLOCK_NOT_FOUND =>
-            -- I can't think in other case when a DataERR BLOCK_NOT_FOUND will
-            -- be produce except the case in which parts of the file are
-            -- deleted during the download
-                                         LIO.Notify ("Empty file downloaded", LIO.mtINFORMATION);
-                                         CreateEmptyFile(DataErr.FileName);
-                                         LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName,
-                                                                                 DownloadsSlots);
+            -- If the file is empty
+            if LDownloadsList.IsWaitingForSize(DataErr.FileName, DownloadsSlots) then
+              LIO.Notify ("Empty file downloaded", LIO.mtINFORMATION);
+              CreateEmptyFile (DataErr.FileName);
+              LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName, DownloadsSlots);
+              LIndexHandler.RemoveIndex(DataErr.FileName);
+            -- If not, someone have deleted parts of the file or we are using
+            -- a aggressive protocol
+            else
+              LIO.VerboseDebug ("LFileHandler","HandlerDataErr","Received DataERR from a solicited block.");
+              LDownloadsList.MarkBlockAsCompleted (DataErr.FileName, DataErr.BlockPos, DownloadsSlots);
+            end if;
+
           when others => LIO.VerboseDebug ("LFileHandler","HandlerDataErr", "Strange OptionType received");
         end case;
       end if;
@@ -460,7 +478,8 @@ package body Lince_FileHandler is
                    Duration'Image (LDownloadsList.GetDownloadTime(FileName,DownloadsSlots))
                    , LIO.mtINFORMATION);
       -- Mark as completed to free the slot
-      LDownloadsList.MarkDownloadAsCompleted (FileName, DownloadsSlots);
+    LDownloadsList.MarkDownloadAsCompleted (FileName, DownloadsSlots);
+    LIndexHandler.RemoveIndex (FileName);
   exception
     when Ex : others => LIO.DebugError ("LFileHandler","KeepDownloadAlive",Ex);
   end KeepDownloadAlive;

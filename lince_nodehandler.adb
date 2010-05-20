@@ -23,8 +23,6 @@ package body Lince_NodeHandler is
     Sent  := ACal.Clock;
     Tries    := 1;
     while not ListReceived and Tries <= LNodeProtocol.MAXHELLORETRIES loop
-      -- TODO: If several hello have been sent, check this
-      -- CRITICAL: REVIEW BOTH TIMES
       TimeWaiting := ACal.Clock - Sent;
       if TimeWaiting  > LConfig.MAX_PACKET_TIMEOUT then
         SayHello (RemoteEP);
