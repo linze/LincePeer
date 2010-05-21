@@ -38,6 +38,8 @@ package Lince_FileHandler is
 
   procedure StartDownload ( FileName  : in ASU.Unbounded_String);
 
+  procedure FirstPopulate ( FileName : in ASU.Unbounded_String);
+
   procedure ManageDownload  ( From     : in LLU.End_Point_Type;
                               Data      : in out LFileProtocol.TData);
 

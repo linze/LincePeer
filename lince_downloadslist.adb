@@ -123,12 +123,14 @@ package body Lince_DownloadsList is
     BActive,BCompleted : boolean;
     Sent, Now          : ACal.Time;
     TimeWaiting        : Duration;
+    SizeWaiting        : boolean;
   begin
     -- For all downloads...
     for i in 1 .. LConfig.MAX_PARALLEL_DOWNLOADS loop
       -- that are active...
       if DownloadsList (i).Active then
         -- and all blocks...
+        SizeWaiting := IsWaitingForSize (DownloadsList(i).FileName, DownloadsList);
         for j in 1 .. LConfig.MAX_PARALLEL_BLOCKS_PER_DOWNLOAD loop
           BActive := DownloadsList (i).Blocks (j).Active;
           BCompleted := DownloadsList (i).Blocks (j).Completed;
@@ -143,7 +145,7 @@ package body Lince_DownloadsList is
               LIO.VerboseDebug ("LDownloadsList", "CheckForTimeOuts",
                                 "Block " & Positive'Image (DownloadsList (i).Blocks (j).BlockPos) &
                                 " expired. Asking again...");
-              AskBlock (DownloadsList (i).FileName, DownloadsList (i).Blocks (j));
+              AskBlock (DownloadsList (i).FileName, DownloadsList (i).Blocks (j), SizeWaiting);
               DownloadsList (i).Blocks (j).SentTime := ACal.Clock;
             end if;
           end if;
@@ -257,11 +259,12 @@ package body Lince_DownloadsList is
   end MarkBlockAsCompleted;
 
 
-  procedure AskBlock           ( FileName       : in ASU.Unbounded_String;
-                                 Block          : in TBlock) is
+  procedure AskBlock           ( FileName        : in ASU.Unbounded_String;
+                                 Block           : in TBlock;
+                                 IsWaitingForSize: in boolean) is
     DataReq          : LFileProtocol.TDataReq;
   begin
-    if Block.BlockPos = 1 then
+    if IsWaitingForSize then
       DataReq.Options    := 1;
       DataReq.OptionType := LProtocol.SIZEREQ;
     else

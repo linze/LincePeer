@@ -100,8 +100,10 @@ private
   procedure CreateBlockList ( BlocksList : in out TBlocksSlots );
   procedure CreateServerList ( ServersList : in out TServersSlots );
 
-  procedure AskBlock         ( FileName       : in ASU.Unbounded_String;
-                               Block          : in TBlock);
+  procedure AskBlock           ( FileName        : in ASU.Unbounded_String;
+                                 Block           : in TBlock;
+                                 IsWaitingForSize: in boolean);
+
   function GetDownloadPosition ( FileName       : in ASU.Unbounded_String;
                                  DownloadsList  : in TDownloadsSlots ) return Natural;
   function GetBlockPosition    ( BlockPos       : in Positive;

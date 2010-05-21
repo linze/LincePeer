@@ -20,11 +20,10 @@ package body Lince_IndexHandler is
                       "Creating file...");
     A_IO.Create (File, A_IO.Out_File,
                  ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION));
-    -- Starts in 2 because we are sure that when the program reach this point
-    -- the first block have been already received, with the FileSize attached.
+
     LIO.VerboseDebug ("LIndexHandler", "WriteNewIndex",
                       "Writing into index...");
-    ActSize := LFileProtocol.DATABLOCKSIZE + 1;
+    ActSize := 1;
     while ActSize < Positive (FileSize) loop
       A_IO.Put_Line (File, Natural'Image (ActSize));
       ActSize := ActSize + LFileProtocol.DATABLOCKSIZE;
@@ -72,6 +71,8 @@ package body Lince_IndexHandler is
     EOF       : boolean;
     Done      : boolean;
   begin
+    -- TODO: Check if it's wise to implement this file access war method.
+    -- Maybe it's too resources consuming and adding a little delay will help.
     Done := False;
     while not Done loop
       begin
@@ -105,14 +106,25 @@ package body Lince_IndexHandler is
     File       : A_IO.File_Type;
     LinesCount : natural := 0;
     Trash      : ASU.Unbounded_String;
+    Done      : boolean;
   begin
-    A_IO.Open (File, A_IO.In_File,
-               ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION));
-    while not A_IO.End_Of_File (File) loop
-      Trash := ASU.To_Unbounded_String (A_IO.Get_Line (File));
-      LinesCount := LinesCount + 1;
+    -- TODO: Check if it's wise to implement this file access war method.
+    -- Maybe it's too resources consuming and adding a little delay will help.
+    Done := False;
+    while not Done loop
+      begin
+    	A_IO.Open (File, A_IO.In_File,
+        	       ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION));
+    	while not A_IO.End_Of_File (File) loop
+     	 Trash := ASU.To_Unbounded_String (A_IO.Get_Line (File));
+      	LinesCount := LinesCount + 1;
+        end loop;
+        A_IO.Close (File);
+        Done := True;
+      exception
+        when A_IO.Use_Error => Done := False;
+      end;
     end loop;
-    A_IO.Close (File);
 
     return LinesCount;
   exception
@@ -132,6 +144,8 @@ package body Lince_IndexHandler is
     LIO.VerboseDebug ("LIndexHandler", "RemoveFromIndex",
                       "Removing block " & Positive'Image (BlockPos) & " from file " &
                       ASU.To_String (FileName));
+    -- TODO: Check if it's wise to implement this file access war method.
+    -- Maybe it's too resources consuming and adding a little delay will help.
     Done := False;
     while not Done loop
       begin
@@ -162,9 +176,6 @@ package body Lince_IndexHandler is
     when Ex : others => LIO.DebugError ("LIndexHandler", "RemoveFromIndex", Ex);
   end RemoveFromIndex;
 
-  -- TODO: This procedure is buggy, for some reason it doesn't delete
-  -- the index file. Lower severity and doesn't affect the correct work
-  -- of the program.
   procedure RemoveIndex ( FileName    : in ASU.Unbounded_String ) is
   begin
     if ADir.Exists (ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION)) then

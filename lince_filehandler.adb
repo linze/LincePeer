@@ -188,7 +188,6 @@ package body Lince_FileHandler is
   -- block and server to their list and send a DATAREQ with SIZEREQ
   -- flag active.
   procedure StartDownload ( FileName  : in ASU.Unbounded_String) is
-    DataReq    : LFileProtocol.TDataReq;
     From       : LLU.End_Point_Type;
     NodesCount : Positive;
     Nodes      : GNULContacts.Contacts_List_Type;
@@ -199,10 +198,12 @@ package body Lince_FileHandler is
     elsif (ADir.Exists (ASU.To_String (LConfig.SHARINGDIR & FileName))) and
           not (ADir.Exists (ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION)))  then
       LIO.Notify ("File already downloaded.", LIO.mtERROR);
+    -- If we are resuming a download...
     elsif ADir.Exists (ASU.To_String (LConfig.SHARINGDIR & FileName)) and
           ADir.Exists (ASU.To_String (LConfig.SHARINGDIR & FileName & LConfig.INDEX_EXTENSION)) then
       LIO.Notify ("Resuming download...", LIO.mtINFORMATION);
 
+      -- The download can't be resumed if they're no nodes list!
       if not LSearchesList.IsSearchRequested (FileName, LSearchHandler.SearchesList) then
         LIO.VerboseDebug ("LFileHandler", "StartDownload", "They are no servers for the selected file");
         LIO.Notify ("They are no servers for the selected file. Download aborted.", LIO.mtERROR);
@@ -225,7 +226,9 @@ package body Lince_FileHandler is
 --      AskMoreBlocks ( FileName );
         KeepDownloadAlive (FileName );
       end if;
+    -- If we are starting a new download...
     else
+      -- The download can't be resumed if they're no nodes list!
       if not LSearchesList.IsSearchRequested (FileName, LSearchHandler.SearchesList) then
         LIO.VerboseDebug ("LFileHandler", "StartDownload", "They are no servers for the selected file");
         LIO.Notify ("They are no servers for the selected file. Download aborted.", LIO.mtERROR);
@@ -244,18 +247,10 @@ package body Lince_FileHandler is
           LDownloadsList.AddServer (DownloadsSlots, FileName, From);
         end loop;
 
-        -- Adds the block to the list
-        LDownloadsList.AddBlock (DownloadsSlots, FileName, 1, From);
-        -- Write the DataReq with SIZEREQ flag activated
-        DataReq.Options := 1;
-        DataReq.EPRes := LProtocol.EP_localserver;
-        DataReq.FileName := FileName;
-        DataReq.BlockPos := 1;
-        DataReq.BlockSize := LFileProtocol.DATABLOCKSIZE;
-        DataReq.OptionType := LProtocol.SIZEREQ;
-        -- Send the DataReq
-        LFileProtocol.SendDataReq (From, DataReq);
-          KeepDownloadAlive (FileName);
+        -- We ask some blocks with the SIZEREQ flag active.
+        FirstPopulate (FileName);
+
+        KeepDownloadAlive (FileName);
       end if;
     end if;
 
@@ -263,7 +258,38 @@ package body Lince_FileHandler is
     when Ex : others => LIO.DebugError ("LFileHandler","StartDownload",Ex);
   end StartDownload;
 
-  -- WARNING: The implementation have a desing error.
+  procedure FirstPopulate ( FileName : in ASU.Unbounded_String) is
+    i       : integer;
+    DataReq : LFileProtocol.TDataReq;
+    From    : LLU.End_Point_Type;
+  begin
+    -- Write the DataReq with SIZEREQ flag activated
+    DataReq.Options := 1;
+    DataReq.EPRes := LProtocol.EP_localserver;
+    DataReq.FileName := FileName;
+    DataReq.BlockSize := LFileProtocol.DATABLOCKSIZE;
+    DataReq.OptionType := LProtocol.SIZEREQ;
+
+    -- Ask blocks while the block windows permits it.
+    i := 0;
+    while i < LConfig.MAX_PARALLEL_BLOCKS_PER_DOWNLOAD loop
+      -- Calculate the new BlockPos to ask
+      DataReq.BlockPos := i * LFileProtocol.DATABLOCKSIZE + 1;
+      -- Get a random node from the list
+      From := LDownloadsList.GetRandomServer (FileName, DownloadsSlots);
+      -- Add to the asked blocks list
+      LDownloadsList.AddBlock (DownloadsSlots, FileName, DataReq.BlockPos, From);
+      -- Send the DataReq
+      LFileProtocol.SendDataReq (From, DataReq);
+      i := i + 1;
+    end loop;
+  exception
+    when Ex : others => LIO.DebugError ("LFileHandler", "FirstPopulate", Ex);
+  end FirstPopulate;
+
+
+
+  -- WARNING: The implementation may have a desing error.
   -- How the packets will be asked again if all the
   -- DataReq fails?
   -- TODO: Think about a parallel thread launched to ask timeout packets
@@ -283,8 +309,8 @@ package body Lince_FileHandler is
     -- If the block is asked...
     else
       if not IsCompleted then
-        -- Check if is the first block, which contain the FileSize needed to
-        -- know the number of packets and write the index
+        -- Check if it is the first block containing the file size, needed to
+        -- write the index.
         if LDownloadsList.IsWaitingForSize (Data.FileName, DownloadsSlots) then
           -- If they're no options (this shouldn't happens)...
           if Data.Options = 0 then
@@ -294,7 +320,11 @@ package body Lince_FileHandler is
           else
             LIO.VerboseDebug ("LFileHandler", "ManageDownload"
                               , "Size received." & LFileProtocol.DataToString (Data));
+            -- This should not happens. We should have received a DataERR BLOCK_NOT_FOUND
+            -- as response of the first DataREQ.
             if Data.Size = 0 then
+              LIO.VerboseDebug ("LFileHandler", "ManageDownload"
+                              , "Received packet indicating FileSize=0. Warning! This is outside protocol");
               -- Mark as completed to free the slot
               LDownloadsList.MarkDownloadAsCompleted (Data.FileName, DownloadsSlots);
               LIndexHandler.RemoveIndex (Data.FileName);
@@ -310,7 +340,7 @@ package body Lince_FileHandler is
         WriteBlock (Data.FileName, Data.BlockPos, Data.BlockSize, Data.BlockData);
         -- Notify it
         LIO.Notify ("Block " & Positive'Image (Data.BlockPos) & " from file " &
-                    ASU.To_String(Data.FileName) & " completed.", LIO.mtRECEIVED);
+                    ASU.To_String (Data.FileName) & " completed.", LIO.mtRECEIVED);
 
         -- Makes the block slot usable for other block petition
         LDownloadsList.MarkBlockAsCompleted (Data.FileName, Data.BlockPos, DownloadsSlots);
@@ -426,14 +456,14 @@ package body Lince_FileHandler is
             LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName, DownloadsSlots);
             LIndexHandler.RemoveIndex (DataErr.FileName);
           when LProtocol.BLOCK_NOT_FOUND =>
-            -- If the file is empty
-            if LDownloadsList.IsWaitingForSize(DataErr.FileName, DownloadsSlots) then
+            -- If the error comes in the first block, the file is a empty one.
+            if DataErr.BlockPos = 1 then
               LIO.Notify ("Empty file downloaded", LIO.mtINFORMATION);
               CreateEmptyFile (DataErr.FileName);
               LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName, DownloadsSlots);
               LIndexHandler.RemoveIndex(DataErr.FileName);
-            -- If not, someone have deleted parts of the file or we are using
-            -- a aggressive protocol
+            -- If it's somewhere else, someone have deleted parts of the file or
+            -- we are using a aggressive protocol.
             else
               LIO.VerboseDebug ("LFileHandler","HandlerDataErr","Received DataERR from a solicited block.");
               LDownloadsList.MarkBlockAsCompleted (DataErr.FileName, DataErr.BlockPos, DownloadsSlots);
@@ -447,11 +477,13 @@ package body Lince_FileHandler is
     when Ex : others => LIO.DebugError ("LFileHandler","HandleDataErr",Ex);
   end HandleDataErr;
 
-
   procedure KeepDownloadAlive ( FileName : in ASU.Unbounded_String) is
     QueueIsEmpty, IndexIsEmpty : boolean := False;
     IsActive : Boolean;
   begin
+
+    -- TODO: Check this when aggresive start. Change when implementing
+    -- first-block-flood.
     while LDownloadsList.IsWaitingForSize (FileName, DownloadsSlots) loop
       LIO.VerboseDebug ("LFileHandler", "KeepDownloadAlive",
                         "Waiting for size...");
