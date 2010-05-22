@@ -1,3 +1,24 @@
+------------------------------------------------------------------------
+--  LincePeer
+--  Copyright 2010 Francisco Canela Gonzalez
+--
+-- This file is part of LincePeer.
+--
+-- LincePeer is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- Foobar is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with LincePeer.  If not, see <http://www.gnu.org/licenses/>.
+--
+------------------------------------------------------------------------
+
 with Ada.Strings.Unbounded;
 with Ada.Calendar;
 with Lower_Layer_UDP;
@@ -8,7 +29,7 @@ package Lince_Config is
   package ACal     renames Ada.Calendar;
   package LLU      renames Lower_Layer_UDP;
 
-  REVISION            : constant String := "1.4 beta";
+  REVISION            : constant String := "1.4";
   VERSION             : constant String := "Lince " & Revision;
 
 
