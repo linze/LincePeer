@@ -8,7 +8,7 @@ package Lince_Config is
   package ACal     renames Ada.Calendar;
   package LLU      renames Lower_Layer_UDP;
 
-  REVISION            : constant String := "1.4 beta";
+  REVISION            : constant String := "1.4";
   VERSION             : constant String := "Lince " & Revision;
 
 
