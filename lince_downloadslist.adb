@@ -173,7 +173,7 @@ package body Lince_DownloadsList is
     if DownloadPosit = 0 then
       return False;
     else
-      return DownloadsList(Positive(DownloadPosit)).Active;
+      return (DownloadsList (Positive (DownloadPosit)).Active);
     end if;
   exception
     when Ex : others => LIO.DebugError ("LDownloadsList", "IsDownloadRequested", Ex);
@@ -253,6 +253,7 @@ package body Lince_DownloadsList is
 
     DownloadPosit := GetDownloadPosition (FileName, DownloadsList);
     BlockPosit    := GetBlockPosition (BlockPos, DownloadsList (DownloadPosit).Blocks);
+    DownloadsList (DownloadPosit).Blocks (BlockPosit).Completed := True;
     DownloadsList (DownloadPosit).Blocks (BlockPosit).Completed := True;
   exception
     when Ex : others => LIO.DebugError ("LDownloadsList", "MarkBlockAsCompleted", Ex);

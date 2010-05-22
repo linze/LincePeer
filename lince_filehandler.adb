@@ -457,7 +457,7 @@ package body Lince_FileHandler is
               LIO.Notify ("Empty file downloaded", LIO.mtINFORMATION);
               CreateEmptyFile (DataErr.FileName);
               LDownloadsList.MarkDownloadAsCompleted (DataErr.FileName, DownloadsSlots);
-              LIndexHandler.RemoveIndex(DataErr.FileName);
+              LIndexHandler.RemoveIndex (DataErr.FileName);
             -- If it's somewhere else, someone have deleted parts of the file or
             -- we are using a aggressive protocol.
             else
@@ -477,14 +477,16 @@ package body Lince_FileHandler is
     QueueIsEmpty, IndexIsEmpty : boolean := False;
     IsActive : Boolean;
   begin
-
-    -- TODO: Check this when aggresive start. Change when implementing
-    -- first-block-flood.
-    while LDownloadsList.IsWaitingForSize (FileName, DownloadsSlots) loop
+    -- IsActive needed here too for avoid freezing the application when
+    -- a empty file is received.
+    IsActive := LDownloadsList.IsDownloadRequested(FileName, DownloadsSlots);
+    while IsActive and (LDownloadsList.IsWaitingForSize (FileName, DownloadsSlots)) loop
       LIO.VerboseDebug ("LFileHandler", "KeepDownloadAlive",
                         "Waiting for size...");
-      LDownloadsList.CheckForTimeOuts(DownloadsSlots);
+
+      LDownloadsList.CheckForTimeOuts (DownloadsSlots);
       delay 1.0;
+      IsActive := LDownloadsList.IsDownloadRequested(FileName, DownloadsSlots);
     end loop;
 
     IsActive := LDownloadsList.IsDownloadRequested(FileName, DownloadsSlots);
