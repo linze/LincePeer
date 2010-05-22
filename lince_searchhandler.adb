@@ -95,7 +95,6 @@ package body Lince_SearchHandler is
     end if;
   end HandleSearch;
 
-
   procedure HandleGotIt ( From      : in LLU.End_Point_Type;
                           GotIt     : in LSearchProtocol.TGotIt) is
   begin
@@ -106,6 +105,7 @@ package body Lince_SearchHandler is
     else
       LSearchesList.AddServer (GotIt.EPSvc, GotIt.FileName, SearchesList);
       GNULContacts.Add_One (LNodeHandler.NodesSlots, GotIt.EPSvc);
+      LIO.Notify ("    |-- Got node: " & LLU.Image(GotIt.EPSvc), LIO.mtRECEIVED);
     end if;
   exception
     when Ex : others => LIO.DebugError ("LSearchHandler","HandleGotIt",Ex);

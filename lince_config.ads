@@ -23,9 +23,9 @@ package Lince_Config is
   LOGFILENAME                       : ASU.Unbounded_String := ASU.To_Unbounded_String ("lince.log");
     -- Verbosity
     SHOWERRORS                      : Boolean := True;
-    LOGERRORS                       : Boolean := True;
+    LOGERRORS                       : Boolean := False;
     SHOWMETHODSFLOW                 : Boolean := False;
-    LOGMETHODSFLOW                  : Boolean := True;
+    LOGMETHODSFLOW                  : Boolean := False;
 
   -- Transmission options
   MAX_PACKET_TIMEOUT                 : duration;

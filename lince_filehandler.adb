@@ -38,20 +38,16 @@ package body Lince_FileHandler is
   -- file and check the type of error.
   function BlockExists  (FileName : in ASU.Unbounded_String;
                          Position : in Positive) return Boolean is
-    File            : AS_IO.File_Type;
+    Size : Natural;
   begin
-    AS_IO.Open (File, AS_IO.In_File, ASU.To_String (LConfig.SHARINGDIR & FileName));
-    AS_IO.Set_Index (File, AS_IO.Positive_Count(Position));
-    AS_IO.Close (File);
-    return True;
+    Size := Natural(ADir.Size (ASU.To_String (LConfig.SHARINGDIR & FileName)));
+    if Natural(Position) > Size then
+      return False;
+    else
+      return True;
+    end if;
   exception
-    -- Don't know why. But this doesn't work:
-    --when AS_IO.End_Error => AS_IO.Close (File);
-    --                        return False;
-    -- We always do a FileExists check before. So Name_Error is avoided
-    -- before entering this part.
     when others =>
-      AS_IO.Close (File);
       return False;
   end BlockExists;
 
