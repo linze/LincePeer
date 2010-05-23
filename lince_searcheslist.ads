@@ -97,7 +97,11 @@ package Lince_SearchesList is
                                SearchesList: in TSearchesList ) return Positive;
 
   procedure PrintServers ( FileName    : in ASU.Unbounded_String;
-                           SearchesList : in TSearchesList );
+                          SearchesList : in TSearchesList );
+
+  function IsAdded (EP           : in LLU.End_Point_Type;
+                    FileName     : in ASU.Unbounded_String;
+                    SearchesList : in TSearchesList ) return boolean;
 private
   function GetFreePosition ( FileName     : in ASU.Unbounded_String;
                              SearchesList : in TSearchesList )  return Natural;

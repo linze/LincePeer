@@ -35,6 +35,7 @@ with Lince_IO;
 with Lince_Config;
 with Lince_DownloadsList;
 with Lince_SearchesList;
+with Lince_Security;
 
 
 package Lince_UDPHandler is
@@ -55,6 +56,7 @@ package Lince_UDPHandler is
   package LConfig          renames Lince_Config;
   package LDownloadsList   renames Lince_DownloadsList;
   package LSearchesList    renames Lince_SearchesList;
+  package LSecurity        renames Lince_Security;
 
   procedure RunServer;
 

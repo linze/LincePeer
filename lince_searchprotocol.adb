@@ -121,9 +121,9 @@ package body Lince_SearchProtocol is
   begin
     UString     := "Options: " & Natural'Image (Search.Options) &
                    " TTL: " & Natural'Image (Search.TTL) &
-                   " EPres: " & LLU.Image (Search.EPRes) &
+                   " EPres: " & ASU.To_String(LProtocol.ClearLLUImage (Search.EPRes)) &
                    " FileName: " & Search.FileName &
-                   " EPsvc: " & LLU.Image (Search.EPSvc);
+                   " EPsvc: " & ASU.To_String(LProtocol.ClearLLUImage (Search.EPSvc));
 
     if Search.Options = 1 then
       UString := UString & " Option: ";
@@ -143,7 +143,7 @@ package body Lince_SearchProtocol is
   begin
     UString     := "Options: " & Natural'Image (GotIt.Options) &
                    " FileName: " & GotIt.FileName &
-                   " EPsvc: " & LLU.Image (GotIt.EPsvc);
+                   " EPsvc: " & ASU.To_String(LProtocol.ClearLLUImage (GotIt.EPsvc));
 
     if GotIt.Options = 1 then
       UString := UString & " Option: ";

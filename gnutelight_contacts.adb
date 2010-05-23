@@ -1,4 +1,3 @@
-
 package body Gnutelight_Contacts is
 
   use type LLU.End_Point_Type;

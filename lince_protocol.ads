@@ -39,4 +39,8 @@ package Lince_Protocol is
   -- Server End_Point
   EP_localserver : LLU.End_Point_Type;
 
+  function ClearLLUImage ( EP   : LLU.End_Point_Type) return ASU.Unbounded_String;
+  function IsSameIP (EP1 : in LLU.End_Point_Type;
+                     EP2 : in LLU.End_Point_Type) return boolean;
+
 end Lince_Protocol;

@@ -207,6 +207,4 @@ package body Lince_IndexHandler is
     when Ex : others => LIO.DebugError ("LIndexHandler", "RemoveIndex", Ex);
   end RemoveIndex;
 
-
-
 end Lince_IndexHandler;

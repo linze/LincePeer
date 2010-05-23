@@ -38,7 +38,7 @@ package Lince_Config is
   -- to load them from a file or database. Too late to change
   -- it, anyway.
 
-  REVISION            : constant String := "1.5 beta";
+  REVISION            : constant String := "1.5";
   VERSION             : constant String := "Lince " & Revision;
 
   -- Configuration file
@@ -81,6 +81,9 @@ package Lince_Config is
   MAX_SAVED_SEARCHES                 : Positive := 100;
   SEARCH_RETRIES                     : Positive := 5;
   SEARCH_START_TTL                   : Positive := 5;
+
+  -- Security
+  ENABLESECURITYCHECKS               : boolean := True;
 
   -- Loads the variables from the configuration file
   procedure LoadConfig;

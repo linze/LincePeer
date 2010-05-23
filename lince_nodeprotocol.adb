@@ -116,8 +116,8 @@ package body Lince_NodeProtocol is
     UString      : ASU.Unbounded_String;
   begin
     UString := "Options: " & Natural'Image (Hello.Options) &
-               " EPres: " & ASU.To_Unbounded_String(LLU.Image (Hello.EPres)) &
-               " EPsvc: " & ASU.To_Unbounded_String (LLU.Image (Hello.EPsvc));
+               " EPres: " & ASU.To_Unbounded_String(ASU.To_String(LProtocol.ClearLLUImage (Hello.EPres))) &
+               " EPsvc: " & ASU.To_Unbounded_String (ASU.To_String(LProtocol.ClearLLUImage (Hello.EPsvc)));
     if Hello.Options = 1 then
       UString := UString & " Option: ";
       case Hello.OptionType is
@@ -139,7 +139,7 @@ package body Lince_NodeProtocol is
 
     for i in 1 .. Welcome.N loop
       UString := UString & " EndPoint" & Positive'Image (i) & " ";
-      UString := UString & ASU.To_Unbounded_String(LLU.Image(GNULContacts.Get_One (Welcome.Peers,i)));
+      UString := UString & ASU.To_Unbounded_String(ASU.To_String(LProtocol.ClearLLUImage(GNULContacts.Get_One (Welcome.Peers,i))));
     end loop;
 
     if Welcome.Options = 1 then

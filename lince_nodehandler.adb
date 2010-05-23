@@ -21,8 +21,8 @@
 
 
 with Lower_Layer_UDP;
-with ADA.Strings.Unbounded;
-with ADA.Exceptions;
+with Ada.Strings.Unbounded;
+with Ada.Exceptions;
 with Ada.Calendar;
 with Lince_Config;
 with Lince_Protocol;

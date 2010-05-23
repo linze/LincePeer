@@ -85,7 +85,7 @@ package Lince_DownloadsList is
   procedure CheckForTimeOuts ( DownloadsList  : in out TDownloadsSlots);
 
   function GetDownloadTime ( FileName : in ASU.Unbounded_String;
-                            DownloadsList : in TDownloadsSlots) return Duration;
+                             DownloadsList : in TDownloadsSlots) return Duration;
 
   function IsDownloadRequested( FileName       : in ASU.Unbounded_String;
                                   DownloadsList  : in TDownloadsSlots) return Boolean;

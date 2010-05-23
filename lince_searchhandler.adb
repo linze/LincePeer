@@ -45,7 +45,7 @@ package body Lince_SearchHandler is
     Tries     : Positive;
     ToEP      : LLU.End_Point_Type;
   begin
-    LIO.Notify ("Searching " & FileName & "...", LIO.mtINFORMATION);
+    LIO.Notify ("Searching " & ASU.To_String(FileName) & "...", LIO.mtINFORMATION);
     LIO.VerboseDebug ("LSearchHandler", "StartSearch", "Creating the search packet...");
     -- Create the package that will be send SEARCH_RETRIES times.
     Search.Options  := 0;
@@ -94,7 +94,6 @@ package body Lince_SearchHandler is
     ToEP       : LLU.End_Point_Type;
     NewSearch  : LSearchProtocol.TSearch;
   begin
-    LIO.Notify ("TTL = " & Integer'Image(Search.TTL),LIO.mtNORMAL);
     if (Search.EPRes = LProtocol.EP_localserver) then
       null;
     elsif (Search.EPSvc = LProtocol.EP_localserver) then
@@ -133,10 +132,14 @@ package body Lince_SearchHandler is
     elsif GotIt.EPSvc = LProtocol.EP_localserver then
       LIO.VerboseDebug ("LSearchHandler", "HandlerGotIt", "Received self GotIt!!!");
     else
-      LSearchesList.AddServer (GotIt.EPSvc, GotIt.FileName, SearchesList);
+      -- Add the server to the nodes list
       GNULContacts.Add_One (LNodeHandler.NodesSlots, GotIt.EPSvc);
-      -- TODO: Add IsServerInList function
-      -- LIO.Notify ("    |-- Got node: " & LLU.Image(GotIt.EPSvc), LIO.mtRECEIVED);
+
+      -- If it's not in the nodes list that have the file, add it.
+      if not LSearchesList.IsAdded (GotIt.EPSvc, GotIt.FileName, SearchesList) then
+        LSearchesList.AddServer (GotIt.EPSvc, GotIt.FileName, SearchesList);
+        LIO.Notify ("    |-- Got node: " & ASU.To_String(LProtocol.ClearLLUImage ((GotIt.EPSvc))), LIO.mtRECEIVED);
+      end if;
     end if;
   exception
     when Ex : others => LIO.DebugError ("LSearchHandler","HandleGotIt",Ex);

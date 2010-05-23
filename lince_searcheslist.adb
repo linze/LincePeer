@@ -134,7 +134,7 @@ package body Lince_SearchesList is
       SPos := Positive (GetSearchPosition (FileName, SearchesList));
       GNULContacts.Add_One (SearchesList (Positive (SPos)).Contacts, Server);
       LIO.VerboseDebug ("LSearchesList", "AddServer",
-                        "Added server: " & LLU.Image (Server));
+                        "Added server: " & ASU.To_String(LProtocol.ClearLLUImage (Server)));
     end if;
     LIO.VerboseDebug ("LSearchesList", "AddServer",
                       "Servers count for this file: " &
@@ -344,12 +344,22 @@ package body Lince_SearchesList is
     for i in 1 ..  NodesCount loop
       LIO.VerboseDebug ("LSearchesList", "PrintServers",
                         "   |--- " &
-                        LLU.Image (GNULContacts.Get_One (SearchesList (SPos).Contacts, i)));
+                        ASU.To_String(LProtocol.ClearLLUImage ( (GNULContacts.Get_One (SearchesList (SPos).Contacts, i)))));
     end loop;
   exception
     when Ex : others => LIO.DebugError ("LSearchesList", "PrintServers", Ex);
                         raise;
   end PrintServers;
+
+  function IsAdded (EP           : in LLU.End_Point_Type;
+                    FileName     : in ASU.Unbounded_String;
+                    SearchesList : in TSearchesList ) return boolean is
+    SPos : Positive;
+  begin
+    SPos       := GetSearchPosition (FileName, SearchesList);
+    return GNULContacts.Is_Added(SearchesList (SPos).Contacts, EP);
+  end IsAdded;
+
 
 
 end Lince_SearchesList;
