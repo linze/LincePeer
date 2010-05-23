@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -83,7 +83,7 @@ package body Lince_SearchesList is
       SearchesList (SPos).Tries := SearchesList (SPos).Tries + 1;
       LIO.VerboseDebug ("LSearchesList", "UpdateTimeAndTries",
                         "Sent tries updated: #" & Positive'Image(SearchesList(SPos).Tries) &
-                        " tries.");
+                        " try.");
       SearchesList (SPos).LastTime := ACal.Clock;
     end if;
   exception
@@ -131,7 +131,7 @@ package body Lince_SearchesList is
       LIO.VerboseDebug ("LSearchesList", "AddServer",
                         "They are not such search");
     else
-      SPos := Positive(GetSearchPosition (FileName, SearchesList));
+      SPos := Positive (GetSearchPosition (FileName, SearchesList));
       GNULContacts.Add_One (SearchesList (Positive (SPos)).Contacts, Server);
       LIO.VerboseDebug ("LSearchesList", "AddServer",
                         "Added server: " & LLU.Image (Server));
@@ -309,6 +309,7 @@ package body Lince_SearchesList is
     when Ex : others => LIO.DebugError ("LSearchesList", "IsSearchRequested", Ex);
                         raise;
   end IsSearchRequested;
+
 
   function GetSearchPosition ( FileName    : in ASU.Unbounded_String;
                                SearchesList: in TSearchesList ) return Positive is

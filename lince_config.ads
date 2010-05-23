@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -21,32 +21,51 @@
 
 with Ada.Strings.Unbounded;
 with Ada.Calendar;
+with Ada.Text_IO;
+with Ada.Directories;
 with Lower_Layer_UDP;
 
 package Lince_Config is
 
-  package ASU      renames Ada.Strings.Unbounded;
-  package ACal     renames Ada.Calendar;
-  package LLU      renames Lower_Layer_UDP;
+  package ASU           renames Ada.Strings.Unbounded;
+  package ACal          renames Ada.Calendar;
+  package A_IO          renames Ada.Text_IO;
+  package ADir          renames Ada.Directories;
+  package LLU           renames Lower_Layer_UDP;
 
-  REVISION            : constant String := "1.4";
+  -- Maybe it's more elegant to handle the variables like
+  -- SMF does: Having them in a array. It's a better solution
+  -- to load them from a file or database. Too late to change
+  -- it, anyway.
+
+  REVISION            : constant String := "1.5 beta";
   VERSION             : constant String := "Lince " & Revision;
+
+  -- Configuration file
+  CONFIGURATIONFILE  : ASU.Unbounded_String := ASU.To_Unbounded_String ("lincepeer.conf");
+  COMMENTDELIMITER   : ASU.Unbounded_String := ASU.To_Unbounded_String ("#");
 
 
   -- Enables Nodes and Search protocol by default
-  EXTRASACTIVED       : constant boolean := TRUE;
+  EXTRASACTIVE                      : boolean := TRUE;
 
   -- Directories
   SHARINGDIR                        : ASU.Unbounded_String := ASU.To_Unbounded_String ("");
 
   -- Logging and error handling options
-  LOGGING                           : boolean := False;
+  LOGGING                           : boolean := True;
   LOGFILENAME                       : ASU.Unbounded_String := ASU.To_Unbounded_String ("lince.log");
     -- Verbosity
     SHOWERRORS                      : Boolean := True;
-    LOGERRORS                       : Boolean := False;
+    LOGERRORS                       : Boolean := True;
     SHOWMETHODSFLOW                 : Boolean := False;
-    LOGMETHODSFLOW                  : Boolean := False;
+    LOGMETHODSFLOW                  : Boolean := True;
+
+  -- Connection options
+  LISTENINGPORT                     : integer := 7777;
+  MINPROPAGATIONDELAY               : integer := 0;
+  MAXPROPAGATIONDELAY               : integer := 0;
+  FAULTSPERCENT                     : integer := 0;
 
   -- Transmission options
   MAX_PACKET_TIMEOUT                 : duration;
@@ -62,4 +81,17 @@ package Lince_Config is
   MAX_SAVED_SEARCHES                 : Positive := 100;
   SEARCH_RETRIES                     : Positive := 5;
   SEARCH_START_TTL                   : Positive := 5;
+
+  -- Loads the variables from the configuration file
+  procedure LoadConfig;
+
+private
+  function IsCommented ( Line : in ASU.Unbounded_String ) return boolean;
+  procedure ParseLine (Line      : in ASU.Unbounded_String;
+                       Variable  : out ASU.Unbounded_String;
+                       Value     : out ASU.Unbounded_String);
+  function BinaryToBoolean ( Value : in ASU.Unbounded_String) return boolean;
+  procedure ChangeVariable ( Variable : in ASU.Unbounded_String;
+                             Value    : in ASU.Unbounded_String);
+
 end Lince_Config;

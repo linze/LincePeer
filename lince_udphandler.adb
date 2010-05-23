@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -51,19 +51,19 @@ package body Lince_UDPHandler is
 
     LIO.VerboseDebug ("LUDPHandler", "RunServer", "Creating local End_Point...");
     -- Create the local server End-Point
-    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (ListeningPort));
+    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (LConfig.LISTENINGPORT));
     -- ... and start listening. PeerHandler method will be triggered
     -- when a message arrives
     LIO.VerboseDebug ("LUDPHandler", "RunServer", "Start listening...");
     -- Create the local server End-Point
-    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (ListeningPort));
+    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (LConfig.LISTENINGPORT));
     LLU.Bind (LProtocol.EP_localserver, UDPHandler'Access);
     LIO.Notify ("Server activated.", LIO.mtINFORMATION);
     LIO.VerboseDebug ("LUDPHandler", "RunServer"
                       , "Created End_Point. Listening at:"
                       & LLU.Get_Host_Name
                       & "(" & LLU.To_IP (LLU.Get_Host_Name) & ")"
-                      & " Port: " & Integer'Image (ListeningPort));
+                      & " Port: " & Integer'Image (LConfig.LISTENINGPORT));
   exception
     when Ex : others => LIO.DebugError ("LUDPHandler","RunServer",Ex);
   end RunServer;

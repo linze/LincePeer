@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -39,6 +39,7 @@ package body Lince_NodeHandler is
     RemoteEP         : LLU.End_Point_Type;
     TimeWaiting      : Duration;
   begin
+    LIO.Notify ("Trying to connect to remote node...", LIO.mtINFORMATION);
     LIO.VerboseDebug ("LNodeHandler", "Connect", "Trying to connect to remote node...");
     RemoteEP := LLU.Build (LLU.To_IP (ASU.To_String (ToHost)), Integer'Value (ASU.To_String (ToPort)));
     SayHello (RemoteEP);
@@ -50,15 +51,17 @@ package body Lince_NodeHandler is
         SayHello (RemoteEP);
         Tries := Tries + 1;
         Sent  := ACal.Clock;
+        LIO.Notify ("Connect retry #" & Positive'Image(Tries), LIO.mtINFORMATION);
         LIO.VerboseDebug ("LNodeHandler", "Connect", "#" & Positive'Image(Tries) & " try...");
       end if;
     end loop;
 
     -- If the remote server is offline, they're no point into adding it
     if ListReceived then
-      -- WARNING: Here I've make the asumption that we were connecting
+      -- WARNING: Here I've made the asumption that we were connecting
       -- to the remote EPsvc
       GNULContacts.Add_One (NodesSlots, RemoteEP);
+      LIO.Notify ("Node list received.", LIO.mtINFORMATION);
     end if;
     LIO.VerboseDebug ("LNodeHandler", "Connect", "Finished trying to connect remote node.");
   exception
@@ -114,7 +117,9 @@ package body Lince_NodeHandler is
     LIO.VerboseDebug ("LNodeHandler", "HandleWelcome", "Welcome received!");
     if not ListReceived then
       for i in 1 .. Welcome.N loop
-        GNULContacts.Add_One (NodesSlots,GNULContacts.Get_One(Welcome.Peers,i));
+        if not GNULContacts.Is_Added(NodesSlots, GNULContacts.Get_One (Welcome.Peers, i)) then
+          GNULContacts.Add_One (NodesSlots, GNULContacts.Get_One (Welcome.Peers, i));
+        end if;
       end loop;
       ListReceived := True;
     end if;

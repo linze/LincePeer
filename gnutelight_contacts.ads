@@ -8,10 +8,6 @@ package Gnutelight_Contacts is
    -- tipo para representar una lista de End_Points que se conocen
    type Contacts_List_Type is limited private;
 
-   -- copia el contenido de una lista a otra
-   procedure Copy ( From : in Contacts_List_Type;
-                    To   : out Contacts_List_Type);
-
    -- añade un End_Point a una lista de contactos SI NO ESTÁ YA EN ELLA
    --                    (si ya estuvier en ella, no hace nada)
    procedure Add_One (CL: in out Contacts_List_Type;
@@ -25,6 +21,14 @@ package Gnutelight_Contacts is
                      N: Natural)
                      return LLU.End_Point_Type;
 
+   -- copia el contenido de una lista a otra
+   procedure Copy ( From : in Contacts_List_Type;
+                    To   : out Contacts_List_Type);
+
+  -- devuelve si un EP está en la lista o no
+  function Is_Added (CL : Contacts_List_Type;
+                     EP : LLU.End_Point_Type) return Boolean;
+
    -- excepción elevada por Get_One si se le pide una posición N inexistente
    No_Such_Contact: exception;
 
@@ -33,7 +37,8 @@ private
    MAX_CONTACTS: constant := 100;
    type Contacts_Array is array (1..MAX_CONTACTS) of LLU.End_Point_Type;
 
-   protected type Contacts_List_Type is
+  protected type Contacts_List_Type is
+      function Is_Added (EP : LLU.End_Point_Type) return Boolean;
       procedure Add_One  (EP: LLU.End_Point_Type);
       function Total return Natural;
       function Get_One  (N: Natural) return LLU.End_Point_Type;

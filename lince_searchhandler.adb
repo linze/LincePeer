@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -45,6 +45,7 @@ package body Lince_SearchHandler is
     Tries     : Positive;
     ToEP      : LLU.End_Point_Type;
   begin
+    LIO.Notify ("Searching " & FileName & "...", LIO.mtINFORMATION);
     LIO.VerboseDebug ("LSearchHandler", "StartSearch", "Creating the search packet...");
     -- Create the package that will be send SEARCH_RETRIES times.
     Search.Options  := 0;
@@ -60,6 +61,8 @@ package body Lince_SearchHandler is
     end if;
 
     LIO.VerboseDebug ("LSearchHandler", "StartSearch", "Sending packets...");
+
+    -- TODO: This part is buggy. It sends several packets each try.
     -- While isn't search timeout
     while not LSearchesList.IsSearchTimedOut (FileName, SearchesList) loop
       Tries := Positive(LSearchesList.GetSearchTries (FileName, SearchesList));
@@ -80,6 +83,7 @@ package body Lince_SearchHandler is
         end if;
       end loop;
     end loop;
+    LIO.Notify ("Search completed.", LIO.mtINFORMATION);
   exception
     when Ex : others => LIO.DebugError ("LSearchHandler","StartSearch",Ex);
   end StartSearch;
@@ -90,8 +94,12 @@ package body Lince_SearchHandler is
     ToEP       : LLU.End_Point_Type;
     NewSearch  : LSearchProtocol.TSearch;
   begin
-    if (Search.EPRes = LProtocol.EP_localserver)
-      or (Search.EPSvc = LProtocol.EP_localserver) then
+    LIO.Notify ("TTL = " & Integer'Image(Search.TTL),LIO.mtNORMAL);
+    if (Search.EPRes = LProtocol.EP_localserver) then
+      null;
+    elsif (Search.EPSvc = LProtocol.EP_localserver) then
+      null;
+    elsif (Search.TTL = 0) then
       null;
     else
       -- Propagate the message
@@ -127,7 +135,8 @@ package body Lince_SearchHandler is
     else
       LSearchesList.AddServer (GotIt.EPSvc, GotIt.FileName, SearchesList);
       GNULContacts.Add_One (LNodeHandler.NodesSlots, GotIt.EPSvc);
-      LIO.Notify ("    |-- Got node: " & LLU.Image(GotIt.EPSvc), LIO.mtRECEIVED);
+      -- TODO: Add IsServerInList function
+      -- LIO.Notify ("    |-- Got node: " & LLU.Image(GotIt.EPSvc), LIO.mtRECEIVED);
     end if;
   exception
     when Ex : others => LIO.DebugError ("LSearchHandler","HandleGotIt",Ex);

@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -57,6 +57,7 @@ package Lince_Console is
 private
   procedure Next_Token ( Source   : in out ASU.Unbounded_String;
                          Token     : out    ASU.Unbounded_String;
-                        Delimiter : in     string);
+                         Delimiter : in     string);
+  procedure ShowCommands;
 
 end Lince_Console;

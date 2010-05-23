@@ -3,17 +3,9 @@ package body Gnutelight_Contacts is
 
   use type LLU.End_Point_Type;
 
-   procedure Copy ( From : in Contacts_List_Type;
-                    To   : out Contacts_List_Type) is
-   begin
-     for I in 1..Total(From) loop
-       Add_One (To, Get_One (From, I));
-     end loop;
-   end Copy;
+  protected body Contacts_List_Type is
 
-   protected body Contacts_List_Type is
-
-      function Is_Added (EP : LLU.End_Point_Type) return Boolean is
+    function Is_Added (EP : LLU.End_Point_Type) return Boolean is
       begin
          for I in 1..Current loop
             if EP = The_List(I) then
@@ -71,6 +63,18 @@ package body Gnutelight_Contacts is
       return CL.Get_One (N);
    end Get_One;
 
+   procedure Copy ( From : in Contacts_List_Type;
+                    To   : out Contacts_List_Type) is
+   begin
+     for I in 1..Total(From) loop
+       Add_One (To, Get_One (From, I));
+     end loop;
+  end Copy;
 
+  function Is_Added  (CL : Contacts_List_Type;
+                     EP : LLU.End_Point_Type) return Boolean is
+  begin
+    return CL.Is_Added(EP);
+  end Is_Added;
 
 end Gnutelight_Contacts;

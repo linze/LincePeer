@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -43,13 +43,15 @@ package body Lince_Console is
     LIO.Notify ("==========================================================================================", LIO.mtNORMAL);
     LIO.Notify ("Usage:", LIO.mtNORMAL);
     LIO.Notify ("", LIO.mtNORMAL);
-    LIO.Notify ("1.) Simple server", LIO.mtNORMAL);
+    LIO.Notify ("1.) Simple server (loads configuration from lincepeer.conf)", LIO.mtNORMAL);
+    LIO.Notify ("   ./lince", LIO.mtNORMAL);
+    LIO.Notify ("2.) Simple server with options", LIO.mtNORMAL);
     LIO.Notify ("   ./lince <port> <dir> <min delay> <max delay> <fails>", LIO.mtNORMAL);
-    LIO.Notify ("2.) Server and establishing widows size", LIO.mtNORMAL);
+    LIO.Notify ("3.) Server and establishing widows size", LIO.mtNORMAL);
     LIO.Notify ("   ./lince <port> <dir> <min delay> <max delay> <fails> <windows>", LIO.mtNORMAL);
-    LIO.Notify ("3.) Server connecting to a node", LIO.mtNORMAL);
+    LIO.Notify ("4.) Server connecting to a node", LIO.mtNORMAL);
     LIO.Notify ("   ./lince <port> <dir> <min delay> <max delay> <fails> <windows> <nhost> <nport>", LIO.mtNORMAL);
-    LIO.Notify ("4.) Direct download", LIO.mtNORMAL);
+    LIO.Notify ("5.) Direct download", LIO.mtNORMAL);
     LIO.Notify ("   ./lince <port> <dir> <min delay> <max delay> <fails> <windows> <rhost> <rport> <file>", LIO.mtNORMAL);
     LIO.Notify ("", LIO.mtNORMAL);
     LIO.Notify ("Where:", LIO.mtNORMAL);
@@ -67,6 +69,42 @@ package body Lince_Console is
     LIO.Notify ("", LIO.mtNORMAL);
   end ShowUsage;
 
+  procedure ShowCommands is
+  begin
+
+    LIO.Notify (" COMMAND LIST", LIO.mtNORMAL);
+    LIO.Notify ("==================================================", LIO.mtNORMAL);
+    LIO.Notify (" + File searching and downloading commands", LIO.mtNORMAL);
+    LIO.Notify ("    - directdownload <host> <port> <file>", LIO.mtNORMAL);
+    LIO.Notify ("        Downloads directly a file from the host", LIO.mtNORMAL);
+    LIO.Notify ("      indicated.", LIO.mtNORMAL);
+    LIO.Notify ("    - search <file>", LIO.mtNORMAL);
+    LIO.Notify ("        Search for nodes having the file.", LIO.mtNORMAL);
+    LIO.Notify ("    - download <file>", LIO.mtNORMAL);
+    LIO.Notify ("        Download a file previously searched.", LIO.mtNORMAL);
+    LIO.Notify ("    - quickdownload <file>", LIO.mtNORMAL);
+    LIO.Notify ("        Search and download a file.", LIO.mtNORMAL);
+    LIO.Notify (" + Debugging commands", LIO.mtNORMAL);
+    LIO.Notify ("    - log verbose [on/off]", LIO.mtNORMAL);
+    LIO.Notify ("        Logs method flow", LIO.mtNORMAL);
+    LIO.Notify ("    - log file <file>", LIO.mtNORMAL);
+    LIO.Notify ("        Change the file in which log is stored.", LIO.mtNORMAL);
+    LIO.Notify ("    - forge <type>", LIO.mtNORMAL);
+    LIO.Notify ("        Where type is:", LIO.mtNORMAL);
+    LIO.Notify ("           * datareq", LIO.mtNORMAL);
+    LIO.Notify ("           * data", LIO.mtNORMAL);
+    LIO.Notify ("           * dataerr", LIO.mtNORMAL);
+    LIO.Notify ("        Build a package with the parameters given", LIO.mtNORMAL);
+    LIO.Notify ("        by the user.", LIO.mtNORMAL);
+    LIO.Notify (" + Other commands", LIO.mtNORMAL);
+    LIO.Notify ("    - help", LIO.mtNORMAL);
+    LIO.Notify ("        This message.", LIO.mtNORMAL);
+    LIO.Notify ("    - quit", LIO.mtNORMAL);
+    LIO.Notify ("        Terminate the program execution.", LIO.mtNORMAL);
+    LIO.Notify ("", LIO.mtNORMAL);
+  end ShowCommands;
+
+
   -- User console interface to fire actions
   procedure StartConsole is
     StopConsole           : boolean := FALSE;
@@ -82,9 +120,10 @@ package body Lince_Console is
       Next_Token (Command, ActionCmd, " ");
 
       if ASU.To_String (ActionCmd) = "quit" then
-        LLU.Finalize;
         LIO.Notify ("Shutting down the application...", LIO.mtInformation);
         StopConsole := TRUE;
+      elsif ASU.To_String (ActionCmd) = "help" then
+        ShowCommands;
       -- Download a file from a remote peer
       -- download <host> <port> <file>
       elsif ASU.To_String (ActionCmd) = "directdownload" then
@@ -98,19 +137,18 @@ package body Lince_Console is
         LSearchesList.AddSearch (MoreAndMoreParameters, LSearchHandler.SearchesList);
         LSearchesList.AddServer (Parameters, MoreParameters, MoreAndMoreParameters, LSearchHandler.SearchesList);
         LFileHandler.StartDownload (MoreAndMoreParameters);
-      elsif ASU.To_String (ActionCmd) = "download" then
-        -- Get first parameter: File
-        Next_Token (Command, Parameters, " ");
-        LSearchHandler.StartSearch (Parameters);
-        LFileHandler.StartDownload (Parameters);
       elsif ASU.To_String (ActionCmd) = "search" then
         -- Get first parameter: File
         Next_Token (Command, Parameters, " ");
         LSearchHandler.StartSearch (Parameters);
-      -- Checks for expired downloads
-      -- checkexpired
-      elsif ASU.To_String (ActionCmd) = "checkexpired" then
-        LDownloadsList.CheckForTimeOuts(LFileHandler.DownloadsSlots);
+      elsif ASU.To_String (ActionCmd) = "download" then
+        -- Get first parameter: File
+        Next_Token (Command, Parameters, " ");
+        LFileHandler.StartDownload (Parameters);
+      elsif ASU.To_String (ActionCmd) = "quickdownload" then
+        Next_Token (Command, Parameters, " ");
+        LSearchHandler.StartSearch (Parameters);
+        LFileHandler.StartDownload (Parameters);
       -- Package forging commands
       -- forge <type of message>
       elsif ASU.To_String (ActionCmd) = "forge" then
