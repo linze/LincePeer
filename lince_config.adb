@@ -59,7 +59,7 @@ package body Lince_Config is
       Value    := ASU.To_Unbounded_String("");
     else
       Variable := ASU.Head (Line, Pos - 1);
-      Value    := ASU.Tail (Line, ASU.Length(Line) - Pos + 1);
+      Value    := ASU.Tail (Line, ASU.Length(Line) - Pos);
     end if;
   end ParseLine;
 
@@ -103,7 +103,10 @@ package body Lince_Config is
     elsif ASU.To_String (Variable) = "SEARCH_RETRIES" then
       SEARCH_RETRIES     := Positive'Value (ASU.To_String (Value));
     elsif ASU.To_String (Variable) = "SEARCH_START_TTL" then
-      SEARCH_START_TTL   := Positive'Value (ASU.To_String(Value));
+      SEARCH_START_TTL   := Positive'Value (ASU.To_String (Value));
+    elsif ASU.To_String (Variable) = "ENABLESECURITYCHECKS" then
+      ENABLESECURITYCHECKS   := BinaryToBoolean (Value);
+
     end if;
   end ChangeVariable;
 
