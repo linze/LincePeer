@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -63,7 +63,7 @@ package body Lince_FileProtocol is
     LLU.Send (To, Buffer'Access);
 
     LIO.VerboseDebug ("LFileProtocol", "SendDataReq"
-                      , "Sent block petition to" & LLU.Image(To) & ": " & DataReqToString (DataReq));
+                      , "Sent block petition to" & ASU.To_String(LProtocol.ClearLLUImage(To) & ": " & DataReqToString (DataReq)));
   exception
     when Ex : others => LIO.DebugError ("LFileProtocol","SendDataReq",Ex);
   end SendDataReq;
@@ -93,7 +93,7 @@ package body Lince_FileProtocol is
     LLU.Send (To, Buffer'Access);
 
     LIO.VerboseDebug ("LFileProtocol", "SendData"
-                      , "Sent block to" & LLU.Image (To) & ": " & DataToString (Data) &
+                      , "Sent block to" & ASU.To_String(LProtocol.ClearLLUImage (To)) & ": " & DataToString (Data) &
                       ". DataBlock should be null here.");
   exception
     when Ex : others => LIO.DebugError ("LFileProtocol","SendData",Ex);
@@ -117,7 +117,7 @@ package body Lince_FileProtocol is
     LLU.Send (To, Buffer'Access);
 
     LIO.VerboseDebug ("LFileProtocol", "SendDataErr"
-                      , "Sent block error to " & LLU.Image (To) & ": " &
+                      , "Sent block error to " & ASU.To_String(LProtocol.ClearLLUImage (To)) & ": " &
                       DataErrToString (DataErr));
   exception
     when Ex : others => LIO.DebugError ("LFileProtocol","SendDataErr",Ex);
@@ -204,7 +204,7 @@ package body Lince_FileProtocol is
     ASU.Append (TmpResult, DataReq.FileName);
     ASU.Append (TmpResult, ASU.To_Unbounded_String (" EPRes: "));
 
-    ASU.Append (TmpResult, LLU.Image (DataReq.EPRes));
+    ASU.Append (TmpResult, ASU.To_String(LProtocol.ClearLLUImage (DataReq.EPRes)));
     ASU.Append (TmpResult, ASU.To_Unbounded_String (" BlockPos: "));
     ASU.Append (TmpResult, Positive'Image (DataReq.BlockPos));
     ASU.Append (TmpResult, ASU.To_Unbounded_String (" BlockSize: "));

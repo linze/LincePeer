@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -35,6 +35,7 @@ with Lince_IO;
 with Lince_Config;
 with Lince_DownloadsList;
 with Lince_SearchesList;
+with Lince_Security;
 
 
 package Lince_UDPHandler is
@@ -55,12 +56,11 @@ package Lince_UDPHandler is
   package LConfig          renames Lince_Config;
   package LDownloadsList   renames Lince_DownloadsList;
   package LSearchesList    renames Lince_SearchesList;
-
-  -- Local server
-  ListeningPort  : Positive := 7777;
-
+  package LSecurity        renames Lince_Security;
 
   procedure RunServer;
+
+private
 
   procedure UDPHandler ( From     : in LLU.End_Point_Type;
                          To       : in LLU.End_Point_Type;

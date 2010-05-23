@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -53,46 +53,43 @@ procedure Lince is
   Arguments    : Natural;
 begin
   Arguments := ADA.Command_Line.Argument_Count;
+  if Arguments >= 5 then
+    LIO.StartLog;
+    LConfig.LISTENINGPORT := Positive'Value (ADA.Command_Line.Argument (1));
+    LConfig.SHARINGDIR := ASU.To_Unbounded_String (ADA.Command_Line.Argument (2) & "/");
+    LConfig.MINPROPAGATIONDELAY := Integer'Value (ADA.Command_Line.Argument (3));
+    LConfig.MAXPROPAGATIONDELAY := Integer'Value (ADA.Command_Line.Argument (4));
+    LConfig.MAX_PACKET_TIMEOUT := Duration (2 * Integer'Value (ADA.Command_Line.Argument (4)) / 1000);
+    LLU.Set_Random_Propagation_Delay (LConfig.MINPROPAGATIONDELAY, LConfig.MAXPROPAGATIONDELAY);
+    LConfig.FAULTSPERCENT := Integer'Value (ADA.Command_Line.Argument (5));
+    LLU.Set_Faults_Percent (LConfig.FAULTSPERCENT);
+  end if;
+
   case Arguments is
+    -- Startup from config file
+    when 0 =>
+      LIO.StartLog;
+      LIO.VerboseDebug ("Lince", "Main", "Startup. Loading configuration file.");
+      LConfig.LoadConfig;
+      LLU.Set_Random_Propagation_Delay (LConfig.MINPROPAGATIONDELAY, LConfig.MAXPROPAGATIONDELAY);
+      LLU.Set_Faults_Percent (LConfig.FAULTSPERCENT);
+      LUDPHandler.RunServer;
+      LConsole.StartConsole;
     -- Startup as server
     when 5 =>
-      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as server");
-      -- Listening port
-      LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
-      LConfig.SHARINGDIR := ASU.To_Unbounded_String (ADA.Command_Line.Argument (2) & "/");
-      LLU.Set_Random_Propagation_Delay (Integer'Value (ADA.Command_Line.Argument (3))
-                                      , Integer'Value (ADA.Command_Line.Argument (4)));
-      LLU.Set_Faults_Percent (Integer'Value (ADA.Command_Line.Argument (5)));
-      LConfig.MAX_PACKET_TIMEOUT := Duration (2 * Integer'Value (ADA.Command_Line.Argument (4)) / 1000);
       LUDPHandler.RunServer;
       LConsole.StartConsole;
     -- Startup as server with windows size.
     when 6 =>
-      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as server with windows size");
-      -- Listening port
-      LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
-      LConfig.SHARINGDIR := ASU.To_Unbounded_String (ADA.Command_Line.Argument (2) & "/");
-      LLU.Set_Random_Propagation_Delay (Integer'Value (ADA.Command_Line.Argument (3))
-                                      , Integer'Value (ADA.Command_Line.Argument (4)));
-      LLU.Set_Faults_Percent (Integer'Value (ADA.Command_Line.Argument (5)));
-      LConfig.MAX_PACKET_TIMEOUT := Duration (2 * Integer'Value (ADA.Command_Line.Argument (4)) / 1000);
       -- Windows size
       LConfig.MAX_PARALLEL_BLOCKS_PER_DOWNLOAD := Positive'Value (ADA.Command_Line.Argument (6));
       LUDPHandler.RunServer;
       LConsole.StartConsole;
     -- Start up with widows size and starting node
     when 8 =>
-      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as server with windows size and starting node");
-      -- Listening port
-      LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
-      LConfig.SHARINGDIR := ASU.To_Unbounded_String (ADA.Command_Line.Argument (2) & "/");
-      LLU.Set_Random_Propagation_Delay (Integer'Value (ADA.Command_Line.Argument (3))
-                                      , Integer'Value (ADA.Command_Line.Argument (4)) );
-      LLU.Set_Faults_Percent (Integer'Value (ADA.Command_Line.Argument (5)));
-      LConfig.MAX_PACKET_TIMEOUT := Duration (2 * Integer'Value (ADA.Command_Line.Argument (4)) / 1000);
       -- Windows size
       LConfig.MAX_PARALLEL_BLOCKS_PER_DOWNLOAD := Positive'Value (ADA.Command_Line.Argument (6));
       LUDPHandler.RunServer;
@@ -102,15 +99,7 @@ begin
       LConsole.StartConsole;
     -- Start up with windows size and direct node download
     when 9 =>
-      LIO.StartLog;
       LIO.VerboseDebug ("Lince", "Main", "Startup as peer downloading a file directly");
-      -- Listening port
-      LUDPHandler.ListeningPort := Positive'Value (ADA.Command_Line.Argument (1));
-      LConfig.SHARINGDIR := ASU.To_Unbounded_String (ADA.Command_Line.Argument (2) & "/");
-      LLU.Set_Random_Propagation_Delay (Integer'Value (ADA.Command_Line.Argument (3))
-                                      , Integer'Value (ADA.Command_Line.Argument (4)));
-      LLU.Set_Faults_Percent (Integer'Value (ADA.Command_Line.Argument (5)));
-      LConfig.MAX_PACKET_TIMEOUT := Duration (2 * Integer'Value (ADA.Command_Line.Argument (4)) / 1000);
       -- Windows size
       LConfig.MAX_PARALLEL_BLOCKS_PER_DOWNLOAD := Positive'Value (ADA.Command_Line.Argument (6));
       LUDPHandler.RunServer;
@@ -125,6 +114,6 @@ begin
       LConsole.StartConsole;
     when others =>
       LConsole.ShowUsage;
-      LLU.Finalize;
   end case;
+  LLU.Finalize;
 end Lince;

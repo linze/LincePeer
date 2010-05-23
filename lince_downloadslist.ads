@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -85,7 +85,7 @@ package Lince_DownloadsList is
   procedure CheckForTimeOuts ( DownloadsList  : in out TDownloadsSlots);
 
   function GetDownloadTime ( FileName : in ASU.Unbounded_String;
-                            DownloadsList : in TDownloadsSlots) return Duration;
+                             DownloadsList : in TDownloadsSlots) return Duration;
 
   function IsDownloadRequested( FileName       : in ASU.Unbounded_String;
                                   DownloadsList  : in TDownloadsSlots) return Boolean;

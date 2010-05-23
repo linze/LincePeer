@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -97,7 +97,11 @@ package Lince_SearchesList is
                                SearchesList: in TSearchesList ) return Positive;
 
   procedure PrintServers ( FileName    : in ASU.Unbounded_String;
-                           SearchesList : in TSearchesList );
+                          SearchesList : in TSearchesList );
+
+  function IsAdded (EP           : in LLU.End_Point_Type;
+                    FileName     : in ASU.Unbounded_String;
+                    SearchesList : in TSearchesList ) return boolean;
 private
   function GetFreePosition ( FileName     : in ASU.Unbounded_String;
                              SearchesList : in TSearchesList )  return Natural;

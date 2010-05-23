@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -83,7 +83,7 @@ package body Lince_SearchesList is
       SearchesList (SPos).Tries := SearchesList (SPos).Tries + 1;
       LIO.VerboseDebug ("LSearchesList", "UpdateTimeAndTries",
                         "Sent tries updated: #" & Positive'Image(SearchesList(SPos).Tries) &
-                        " tries.");
+                        " try.");
       SearchesList (SPos).LastTime := ACal.Clock;
     end if;
   exception
@@ -131,10 +131,10 @@ package body Lince_SearchesList is
       LIO.VerboseDebug ("LSearchesList", "AddServer",
                         "They are not such search");
     else
-      SPos := Positive(GetSearchPosition (FileName, SearchesList));
+      SPos := Positive (GetSearchPosition (FileName, SearchesList));
       GNULContacts.Add_One (SearchesList (Positive (SPos)).Contacts, Server);
       LIO.VerboseDebug ("LSearchesList", "AddServer",
-                        "Added server: " & LLU.Image (Server));
+                        "Added server: " & ASU.To_String(LProtocol.ClearLLUImage (Server)));
     end if;
     LIO.VerboseDebug ("LSearchesList", "AddServer",
                       "Servers count for this file: " &
@@ -310,6 +310,7 @@ package body Lince_SearchesList is
                         raise;
   end IsSearchRequested;
 
+
   function GetSearchPosition ( FileName    : in ASU.Unbounded_String;
                                SearchesList: in TSearchesList ) return Positive is
     Found : boolean := False;
@@ -343,12 +344,22 @@ package body Lince_SearchesList is
     for i in 1 ..  NodesCount loop
       LIO.VerboseDebug ("LSearchesList", "PrintServers",
                         "   |--- " &
-                        LLU.Image (GNULContacts.Get_One (SearchesList (SPos).Contacts, i)));
+                        ASU.To_String(LProtocol.ClearLLUImage ( (GNULContacts.Get_One (SearchesList (SPos).Contacts, i)))));
     end loop;
   exception
     when Ex : others => LIO.DebugError ("LSearchesList", "PrintServers", Ex);
                         raise;
   end PrintServers;
+
+  function IsAdded (EP           : in LLU.End_Point_Type;
+                    FileName     : in ASU.Unbounded_String;
+                    SearchesList : in TSearchesList ) return boolean is
+    SPos : Positive;
+  begin
+    SPos       := GetSearchPosition (FileName, SearchesList);
+    return GNULContacts.Is_Added(SearchesList (SPos).Contacts, EP);
+  end IsAdded;
+
 
 
 end Lince_SearchesList;

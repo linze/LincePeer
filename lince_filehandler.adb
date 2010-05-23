@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -235,7 +235,7 @@ package body Lince_FileHandler is
         for i in 1 ..  NodesCount loop
           -- Adds the server to the list
           From := GNULContacts.Get_One (Nodes, i);
-          LIO.VerboseDebug ("LFileHandler", "StartDownload", "    |-- Got node: " & LLU.Image(From));
+          LIO.VerboseDebug ("LFileHandler", "StartDownload", "    |-- Got node: " & ASU.To_String(LProtocol.ClearLLUImage(From)));
           LDownloadsList.AddServer (DownloadsSlots, FileName, From);
         end loop;
 
@@ -260,7 +260,7 @@ package body Lince_FileHandler is
         for i in 1 ..  NodesCount loop
           -- Adds the server to the list
           From := GNULContacts.Get_One (Nodes, i);
-          LIO.VerboseDebug ("LFileHandler", "StartDownload", "    |-- Got node: " & LLU.Image(From));
+          LIO.VerboseDebug ("LFileHandler", "StartDownload", "    |-- Got node: " & ASU.To_String(LProtocol.ClearLLUImage(From)));
           LDownloadsList.AddServer (DownloadsSlots, FileName, From);
         end loop;
 
@@ -305,13 +305,9 @@ package body Lince_FileHandler is
   end FirstPopulate;
 
 
-
-  -- WARNING: The implementation may have a desing error.
-  -- How the packets will be asked again if all the
-  -- DataReq fails?
-  -- TODO: Think about a parallel thread launched to ask timeout packets
-  -- TODO: Think about moving the "askmoreblocks" option to this thread.
-  -- TODO: Security check-> From address should be the same that Block.From.
+  -- Process incoming Data. Check if they're asked and writes them into disk.
+  -- If they have the Size flag actived and it's waiting for size, it manages
+  -- the size issue too.
   procedure ManageDownload  ( From      : in LLU.End_Point_Type;
                               Data      : in out LFileProtocol.TData) is
     IsRequested,IsCompleted : Boolean;
@@ -371,6 +367,8 @@ package body Lince_FileHandler is
     when Ex : others => LIO.DebugError ("LFileHandler","ManageDownload",Ex);
   end ManageDownload;
 
+  -- If they are more blocks needed and the windows allow it, this procedure
+  -- ask more blocks until reaching one of the two conditions.
   procedure AskMoreBlocks ( FileName     : in ASU.Unbounded_String ) is
     ContinueWorking   : boolean;
     ContinueSearching : boolean;
@@ -432,6 +430,8 @@ package body Lince_FileHandler is
     when Ex : others => LIO.DebugError ("LFileHandler","AskMoreBlocks",Ex);
   end AskMoreBlocks;
 
+  -- It handles the process of sending a DataERR when something goes
+  -- wrong (The file or the block doesn't exist)
   procedure NotifyDataError ( DataReq: in LFileProtocol.TDataReq;
                               Error  : in LProtocol.TOption_Type) is
     DataErr         : LFileProtocol.TDataErr;
@@ -452,6 +452,11 @@ package body Lince_FileHandler is
     when Ex : others => LIO.DebugError ("LFileHandler","NotifyDataErr",Ex);
   end NotifyDataError;
 
+  -- It trigger the needed actions when a DataERR comes.
+  -- If it's a FILE_NOT_FOUND error it cancel the download
+  -- If it's a BLOCK_NOT_FOUND error, it check if it's the first block of the
+  -- file. If it is, the downloading file is a empty one. If not, it mark the
+  -- block as downloaded.
   procedure HandleDataErr ( From     : in LLU.End_Point_Type;
                            DataErr  : in LFileProtocol.TDataErr) is
     IsRequested : boolean;
@@ -494,6 +499,7 @@ package body Lince_FileHandler is
     when Ex : others => LIO.DebugError ("LFileHandler","HandleDataErr",Ex);
   end HandleDataErr;
 
+  -- Keep the application doing the required actions to complete the download.
   procedure KeepDownloadAlive ( FileName : in ASU.Unbounded_String) is
     QueueIsEmpty, IndexIsEmpty : boolean := False;
     IsActive : Boolean;
@@ -506,11 +512,15 @@ package body Lince_FileHandler is
                         "Waiting for size...");
 
       LDownloadsList.CheckForTimeOuts (DownloadsSlots);
-      delay 1.0;
+      -- TODO: I thought that this delay was a good idea, but thinking now
+      -- it have no sense at all. Remove and test if everything goes ok.
+      delay 0.5;
       IsActive := LDownloadsList.IsDownloadRequested(FileName, DownloadsSlots);
     end loop;
 
-    IsActive := LDownloadsList.IsDownloadRequested(FileName, DownloadsSlots);
+    -- Size received or download completed with the first block.
+    IsActive := LDownloadsList.IsDownloadRequested (FileName, DownloadsSlots);
+    -- If the download isn't completed with the fist block...
     while IsActive and not QueueIsEmpty and not IndexIsEmpty loop
       LIO.VerboseDebug ("LFileHandler", "KeepDownloadAlive",
                         "Refreshing the download process");

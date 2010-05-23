@@ -9,7 +9,7 @@
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
 --
--- Foobar is distributed in the hope that it will be useful,
+-- LincePeer is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU General Public License for more details.
@@ -36,6 +36,7 @@ with Lince_IO;
 with Lince_Config;
 with Lince_DownloadsList;
 with Lince_SearchesList;
+with Lince_Security;
 
 
 package body Lince_UDPHandler is
@@ -51,19 +52,19 @@ package body Lince_UDPHandler is
 
     LIO.VerboseDebug ("LUDPHandler", "RunServer", "Creating local End_Point...");
     -- Create the local server End-Point
-    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (ListeningPort));
+    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (LConfig.LISTENINGPORT));
     -- ... and start listening. PeerHandler method will be triggered
     -- when a message arrives
     LIO.VerboseDebug ("LUDPHandler", "RunServer", "Start listening...");
     -- Create the local server End-Point
-    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (ListeningPort));
+    LProtocol.EP_localserver := LLU.Build (LLU.To_IP (LLU.Get_Host_Name), Integer (LConfig.LISTENINGPORT));
     LLU.Bind (LProtocol.EP_localserver, UDPHandler'Access);
     LIO.Notify ("Server activated.", LIO.mtINFORMATION);
     LIO.VerboseDebug ("LUDPHandler", "RunServer"
                       , "Created End_Point. Listening at:"
                       & LLU.Get_Host_Name
                       & "(" & LLU.To_IP (LLU.Get_Host_Name) & ")"
-                      & " Port: " & Integer'Image (ListeningPort));
+                      & " Port: " & Integer'Image (LConfig.LISTENINGPORT));
   exception
     when Ex : others => LIO.DebugError ("LUDPHandler","RunServer",Ex);
   end RunServer;
@@ -76,19 +77,25 @@ package body Lince_UDPHandler is
     PetitionCmd  : LProtocol.TMessage_Type;
   begin
     LIO.VerboseDebug ("LUDPHandler", "UDPHandler"
-                      , "Package received from " & LLU.Image (From) & ".");
-    PetitionCmd := LProtocol.TMessage_Type'Input (Buffer);
+                      , "Packet received from " & ASU.To_String (LProtocol.ClearLLUImage (From)) & ".");
+    if not LSecurity.IsBlacklisted (From) then
+      PetitionCmd := LProtocol.TMessage_Type'Input (Buffer);
 
-    case PetitionCmd is
-    when LProtocol.DATAREQ => ProcessDataReq (From, Buffer);
-    when LProtocol.DATA    => ProcessData    (From, Buffer);
-    when LProtocol.DATAERR => ProcessDataErr (From, Buffer);
-    when LProtocol.HELLO   => ProcessHello (From, Buffer);
-    when LProtocol.WELCOME => ProcessWelcome (From, Buffer);
-    when LProtocol.SEARCH  => ProcessSearch (From, Buffer);
-    when LProtocol.GOTIT   => ProcessGotIt (From, Buffer);
-    when others  => LIO.VerboseDebug ("LUDPHandler","UDPHandler", "Unknown package type.");
-    end case;
+      case PetitionCmd is
+      when LProtocol.DATAREQ => ProcessDataReq (From, Buffer);
+      when LProtocol.DATA    => ProcessData    (From, Buffer);
+      when LProtocol.DATAERR => ProcessDataErr (From, Buffer);
+      when LProtocol.HELLO   => ProcessHello (From, Buffer);
+      when LProtocol.WELCOME => ProcessWelcome (From, Buffer);
+      when LProtocol.SEARCH  => ProcessSearch (From, Buffer);
+      when LProtocol.GOTIT   => ProcessGotIt (From, Buffer);
+      when others  => LIO.VerboseDebug ("LUDPHandler","UDPHandler", "Unknown package type.");
+      end case;
+    else
+      LIO.VerboseDebug ("LUDPHandler", "UDPHandler"
+                      , "Packet ignored because the IP is BLACKLISTED.");
+    end if;
+
 
    exception
     when Ex : others => LIO.DebugError ("LUDPHandler","UDPHandler",Ex);
@@ -107,8 +114,15 @@ package body Lince_UDPHandler is
     LIO.VerboseDebug ("LUDPHandler", "ProcessDataReq message", "Processing DataReq");
     LFileProtocol.GetDataReq (Buffer, DataRequest);
 
-    LIO.VerboseDebug ("LUDPHandler", "ProcessDataReq", "Serving block ");
-    LFileHandler.ServeBlock (DataRequest);
+    if (LConfig.ENABLESECURITYCHECKS) and (LSecurity.IsTrasversalDirectory (DataRequest.FileName)) then
+      LIO.Notify ("Trasversal directory exploit detected !!. " &
+                  ASU.To_String (LProtocol.ClearLLUImage(From)) &
+                  ". Blocking this node", LIO.mtINFORMATION);
+      LIO.VerboseDebug ("LUDPHandler", "ProcessDataReq", "Trasversal directory detected!! IP Blacklisted");
+      LSecurity.AddBlacklistedEP(From);
+    else
+      LFileHandler.ServeBlock (DataRequest);
+    end if;
   exception
     when Ex : others => LIO.DebugError ("LUDPHandler", "ProcessDataReq", Ex);
   end ProcessDataReq;
@@ -168,7 +182,16 @@ package body Lince_UDPHandler is
   begin
     LIO.VerboseDebug ("LUDPHandler", "ProcessSearch", "Processing Search");
     LSearchProtocol.GetSearch (Buffer, Search);
-    LSearchHandler.HandleSearch (From, Search);
+
+    if (LConfig.ENABLESECURITYCHECKS) and (LSecurity.IsTrasversalDirectory (Search.FileName)) then
+      LIO.Notify ("Trasversal directory exploit detected !!. " &
+                  ASU.To_String (LProtocol.ClearLLUImage(From)) &
+                  ". Blocking this node", LIO.mtINFORMATION);
+      LIO.VerboseDebug ("LUDPHandler", "ProcessSearch", "Trasversal directory detected!! IP Blacklisted");
+      LSecurity.AddBlacklistedEP(From);
+    else
+      LSearchHandler.HandleSearch (From, Search);
+    end if;
   exception
     when Ex : others => LIO.DebugError ("LUDPHandler", "ProcessSearch", Ex);
   end ProcessSearch;
