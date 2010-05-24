@@ -200,9 +200,9 @@ package body Lince_FileHandler is
   end ServeBlock;
 
 
-  -- Ask the first DATAREQ needed to start the download process. It
-  -- check that the download limit isn't reached, add the download,
-  -- block and server to their list and send a DATAREQ with SIZEREQ
+  -- Ask the first queue of DATAREQ needed to start the download process. 
+  -- It check that the download limit isn't reached, add the download,
+  -- block and server to their list and send DATAREQs with SIZEREQ
   -- flag active.
   procedure StartDownload ( FileName  : in ASU.Unbounded_String) is
     From       : LLU.End_Point_Type;

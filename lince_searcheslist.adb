@@ -173,9 +173,6 @@ package body Lince_SearchesList is
                         "Search not found !!.");
     else
       SPos := GetSearchPosition (FileName, SearchesList);
-      -- TODO: Remove this. Excesive debugging
-      LIO.VerboseDebug ("LSearchesList", "GetServers",
-                        "SPos: " & Positive'Image (SPos));
       PrintServers (FileName, SearchesList);
 
 

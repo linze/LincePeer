@@ -47,6 +47,7 @@ package Lince_Config is
 
 
   -- Enables Nodes and Search protocol by default
+  -- TODO: Check if this is really needed.
   EXTRASACTIVE                      : boolean := TRUE;
 
   -- Directories
