@@ -38,7 +38,7 @@ package Lince_Config is
   -- to load them from a file or database. Too late to change
   -- it, anyway.
 
-  REVISION            : constant String := "1.5";
+  REVISION            : constant String := "1.5.1";
   VERSION             : constant String := "Lince " & Revision;
 
   -- Configuration file

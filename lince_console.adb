@@ -156,7 +156,7 @@ package body Lince_Console is
           if ASU.To_String (Parameters) = "datareq" then
             LForge.ForgeDataReq;
           elsif ASU.To_String (Parameters) = "data" then
-            null;
+            LForge.ForgeData;
           elsif ASU.To_String (Parameters) = "dataerr" then
             LForge.ForgeDataErr;
           else

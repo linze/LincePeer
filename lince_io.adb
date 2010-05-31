@@ -47,7 +47,10 @@ package body Lince_IO is
     when mtSENT         => A_IO.Put_Line ("[<<] " & Message);
     when mtINFORMATION  => A_IO.Put_Line ("[ii] " & Message);
     when mtASKINFO      => A_IO.Put      (Message & "> ");
-    when mtERROR        => A_IO.Put_Line ("[EE] " & Message);
+    when mtERROR        =>
+      if LConfig.SHOWERRORS then
+        A_IO.Put_Line ("[EE] " & Message);
+      end if;
     when mtDEBUG        => A_IO.Put_Line ("[DD] " & Message);
     when mtOTHER        => null;
     end case;

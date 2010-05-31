@@ -22,12 +22,17 @@
 
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-with ADA.Strings.Unbounded.Text_IO;
-with ADA.Streams;
+with Ada.Strings.Unbounded.Text_IO;
+with Ada.Streams;
+with Lince_Config;
 with Lince_Protocol;
 with Lince_FileProtocol;
+with Lince_FileHandler;
 with Ada.Exceptions;
 with Lower_Layer_UDP;
+
+use type Ada.Strings.Unbounded.Unbounded_String;
+use type Lince_Protocol.TOption_Type;
 
 package body Lince_Forge is
 
@@ -55,11 +60,11 @@ package body Lince_Forge is
     DataReq.FileName   := Tmp1;
 
     -- BlockPos field
-    LIO.GetInfo ("Block position? [>1]", Tmp1);
+    LIO.GetInfo ("Block position? [>0]", Tmp1);
     DataReq.BlockPos   := Positive'Value (ASU.To_String(Tmp1));
 
     -- BlockSize field
-    LIO.GetInfo ("Block size? [>1]", Tmp1);
+    LIO.GetInfo ("Block size? [>0]", Tmp1);
     DataReq.BlockSize   := Positive'Value (ASU.To_String(Tmp1));
 
     -- Option_Type and the Option
@@ -99,13 +104,19 @@ package body Lince_Forge is
     LIO.GetInfo ("File to send?", Tmp1);
     Data.FileName   := Tmp1;
 
-    LIO.GetInfo ("Block position? [>1]", Tmp1);
-    Data.BlockPos   := Positive'Value (ASU.To_String(Tmp1));
-
-    LIO.GetInfo ("Block size? [>1]", Tmp1);
-    Data.BlockSize   := Positive'Value (ASU.To_String (Tmp1));
+    LIO.GetInfo ("Block position? [>0]", Tmp1);
+    Data.BlockPos   := Positive'Value (ASU.To_String (Tmp1));
 
     Data.BlockData := new AS.Stream_Element_Array (1 .. AS.Stream_Element_Offset (LFileProtocol.DATABLOCKSIZE));
+
+    if LFileHandler.FileExists (Data.FileName) and LFileHandler.BlockExists (Data.FileName, Data.BlockPos) then
+      LFileHandler.GetBlock (Data.FileName, Data.BlockPos, Data.BlockSize, Data.BlockData);
+    else
+      LIO.Notify ("File not found. Sending garbage. This is not recommended.", LIO.mtINFORMATION);
+      LIO.GetInfo ("Block size? [>0]", Tmp1);
+      Data.BlockSize   := Positive'Value (ASU.To_String (Tmp1));
+    end if;
+
 
     if Data.Options = 1 then
       LIO.GetInfo ("Option? [0=Nothing,1=SizeReq,2=Size,3=File_Not_Found,4=Block_Not_Found]", Tmp1);
@@ -113,20 +124,30 @@ package body Lince_Forge is
         when 0 => null;
         when 1 => Data.OptionType := LProtocol.SIZEREQ;
         when 2 => Data.OptionType := LProtocol.SIZE;
-                  LIO.GetInfo ("File size?", Tmp1);
-                  Data.Size := Natural'Value (ASU.To_String(Tmp1));
         when 3 => Data.OptionType := LProtocol.FILE_NOT_FOUND;
         when 4 => Data.OptionType := LProtocol.BLOCK_NOT_FOUND;
         when others => null;
       end case;
+
+      if Data.OptionType = LProtocol.SIZE then
+        LIO.GetInfo ("Include SIZE? [Y/N]", Tmp1);
+        if ASU.To_String (Tmp1) = "y" or ASU.To_String (Tmp1) = "Y" then
+          Data.Size := Natural (ADir.Size (ASU.To_String (LConfig.SHARINGDIR & Data.FileName)));
+          LIO.GetInfo ("Detected file size as " & Natural'Image (Data.Size) & ". Change it? [Y/N]", Tmp1);
+          if ASU.To_String (Tmp1) = "y" or ASU.To_String (Tmp1) = "Y" then
+            LIO.GetInfo ("New file size: ", Tmp1);
+            Data.Size := Natural'Value ( ASU.To_String (Tmp1));
+          end if;
+        end if;
+      end if;
     end if;
 
-    LIO.Notify ("Sending DATAREQ", LIO.mtINFORMATION);
+    LIO.Notify ("Sending DATA", LIO.mtINFORMATION);
     LFileProtocol.SendData (EPto, Data);
-    LIO.Notify ("DATAREQ sent", LIO.mtDEBUG);
   exception
-    when others =>
+    when Ex:others =>
       LIO.Notify ("One or some of the data introduced are not valid.", LIO.mtERROR);
+      LIO.DebugError ("LFileHandler","ServeBlock",Ex);
   end ForgeData;
 
   -- Forge DataErr
@@ -145,7 +166,7 @@ package body Lince_Forge is
     LIO.GetInfo ("File name?", Tmp1);
     DataErr.FileName   := Tmp1;
 
-    LIO.GetInfo ("Block position? [>1]", Tmp1);
+    LIO.GetInfo ("Block position? [>0]", Tmp1);
     DataErr.BlockPos   := Positive'Value (ASU.To_String(Tmp1));
 
     if DataErr.Options = 1 then

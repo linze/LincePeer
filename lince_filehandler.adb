@@ -20,11 +20,11 @@
 ------------------------------------------------------------------------
 
 with Lower_Layer_UDP;
-with ADA.Strings.Unbounded;
-with ADA.Streams;
-with ADA.Streams.Stream_IO;
-with ADA.Exceptions;
-with ADA.Directories;
+with Ada.Strings.Unbounded;
+with Ada.Streams;
+with Ada.Streams.Stream_IO;
+with Ada.Exceptions;
+with Ada.Directories;
 with Lince_Protocol;
 with Lince_FileProtocol;
 with Lince_IndexHandler;
@@ -200,7 +200,7 @@ package body Lince_FileHandler is
   end ServeBlock;
 
 
-  -- Ask the first queue of DATAREQ needed to start the download process. 
+  -- Ask the first queue of DATAREQ needed to start the download process.
   -- It check that the download limit isn't reached, add the download,
   -- block and server to their list and send DATAREQs with SIZEREQ
   -- flag active.

@@ -54,6 +54,16 @@ package Lince_FileHandler is
 
   DownloadsSlots    : LDownloadsList.TDownloadsSlots;
 
+  -- This methods are public due the need of use them in LForge.
+  function FileExists   (FileName : in ASU.Unbounded_String) return Boolean;
+  function BlockExists  (FileName : in ASU.Unbounded_String;
+                         Position : in Positive) return Boolean;
+
+  procedure GetBlock    ( FileName   : in ASU.Unbounded_String;
+                          Position   : in Positive;
+                          Size       : in out Positive;
+                          Block      : access AS.Stream_Element_Array);
+
   -- Main methods
 
   procedure ServeBlock   ( DataReq   : in LFileProtocol.TDataReq);
@@ -74,16 +84,10 @@ package Lince_FileHandler is
                            DataErr  : in LFileProtocol.TDataErr);
 
   procedure KeepDownloadAlive ( FileName : in ASU.Unbounded_String);
+
+
 private
   -- Auxiliary methods
-  function FileExists   (FileName : in ASU.Unbounded_String) return Boolean;
-  function BlockExists  (FileName : in ASU.Unbounded_String;
-                         Position : in Positive) return Boolean;
-
-  procedure GetBlock    ( FileName   : in ASU.Unbounded_String;
-                          Position   : in Positive;
-                          Size       : in out Positive;
-                          Block      : access AS.Stream_Element_Array);
 
   procedure WriteBlock  ( FileName   : in ASU.Unbounded_String;
                           Position   : in Positive;

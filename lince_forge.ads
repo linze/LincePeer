@@ -20,25 +20,31 @@
 ------------------------------------------------------------------------
 
 
-with ADA.Strings.Unbounded;
-with ADA.Strings.Unbounded.Text_IO;
-with ADA.Text_IO;
-with ADA.Streams;
+with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Text_IO;
+with Ada.Text_IO;
+with Ada.Streams;
+with Ada.Directories;
 with Lower_Layer_UDP;
+with Lince_Config;
 with Lince_Protocol;
 with Lince_FileProtocol;
+with Lince_FileHandler;
 with Lince_IO;
 
 
 package Lince_Forge is
 
-  package ASU              renames ADA.Strings.Unbounded;
-  package ASU_IO           renames ADA.Strings.Unbounded.Text_IO;
-  package A_IO             renames ADA.Text_IO;
-  package AS               renames ADA.Streams;
+  package ASU              renames Ada.Strings.Unbounded;
+  package ASU_IO           renames Ada.Strings.Unbounded.Text_IO;
+  package A_IO             renames Ada.Text_IO;
+  package AS               renames Ada.Streams;
+  package ADir             renames Ada.Directories;
   package LLU              renames Lower_Layer_UDP;
+  package LConfig          renames Lince_Config;
   package LProtocol        renames Lince_Protocol;
   package LFileProtocol    renames Lince_FileProtocol;
+  package LFileHandler     renames Lince_FileHandler;
   package LIO              renames Lince_IO;
 
 
